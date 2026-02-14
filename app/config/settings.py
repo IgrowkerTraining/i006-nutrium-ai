@@ -7,13 +7,19 @@ from typing import Optional
 class Settings(BaseSettings):
     """Application settings with environment variable support."""
     
-    app_name: str = "FastAPI AI Template"
+    app_name: str = "Nutrium AI Service"
     app_version: str = "1.0.0"
     debug: bool = True
     
     # OpenRouter Configuration
     openrouter_api_key: str
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
+    
+    # Database Configuration - Sprint 1
+    database_url: str = "postgresql://nutrium_user:nutrium_password@localhost:5432/nutrium_db"
+    database_echo: bool = False
+    database_pool_size: int = 5
+    database_max_overflow: int = 10
     
     # API Configuration
     api_host: str = "0.0.0.0"

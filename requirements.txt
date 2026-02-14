@@ -6,6 +6,12 @@ httpx==0.25.2
 python-dotenv==1.0.0
 passlib[bcrypt]==1.7.4
 
+# Database dependencies - Sprint 1
+sqlalchemy==2.0.23
+asyncpg==0.29.0
+psycopg2-binary==2.9.9
+alembic==1.13.1
+
 # Note: This project supports both pip and uv package managers
 # To use uv, install it first: pip install uv
 # Then run: uv sync

@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config.settings import settings
+from app.config.database import init_db, close_db
 from app.core.logging import setup_logging, get_logger
 from app.api.v1 import api_router
 from app.models.schemas import RootResponse
@@ -21,9 +22,17 @@ async def lifespan(app: FastAPI):
     """Application lifespan manager."""
     # Startup
     logger.info(f"Starting {settings.app_name} v{settings.app_version}")
+    try:
+        await init_db()
+        logger.info("Database initialized successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize database: {str(e)}")
+    
     yield
+    
     # Shutdown
     await ai_service.close()
+    await close_db()
     logger.info("Application shutdown complete")
 
 
