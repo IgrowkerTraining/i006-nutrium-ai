@@ -57,10 +57,10 @@ async def init_db():
         async with engine.begin() as conn:
             # Import all models here to ensure they are registered
             from app.models import database_models
-            
+
             # Create tables (only for development, use Alembic in production)
             # await conn.run_sync(Base.metadata.create_all)
-            
+
             logger.info("Database connection initialized successfully")
     except Exception as e:
         logger.error(f"Failed to initialize database: {str(e)}")
