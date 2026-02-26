@@ -178,7 +178,7 @@ class MatchAnalysisRequest(BaseModel):
         default=5, ge=1, le=20, description="Number of top matches to return"
     )
     ai_model: str = Field(
-        default="openai/gpt-4", description="AI model to use for analysis"
+        default="qwen/qwen3.5-35b-a3b", description="AI model to use for analysis"
     )
 
 
