@@ -28,6 +28,12 @@ class ChatRequest(BaseModel):
         default=False, description="Enable streaming response"
     )
 
+class Usage(BaseModel):
+    """Token usage information."""
+
+    prompt_tokens: int = Field(..., description="Number of tokens in the prompt")
+    completion_tokens: int = Field(..., description="Number of tokens in the completion")
+    total_tokens: int = Field(..., description="Total number of tokens used")
 
 class ChatResponse(BaseModel):
     """Chat completion response model."""
@@ -37,7 +43,7 @@ class ChatResponse(BaseModel):
     created: int = Field(..., description="Creation timestamp")
     model: str = Field(..., description="Model used")
     choices: List[Dict[str, Any]] = Field(..., description="Response choices")
-    usage: Optional[Dict[str, int]] = Field(
+    usage: Optional[Usage] = Field(
         default=None, description="Token usage information"
     )
 
