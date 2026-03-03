@@ -1,7 +1,7 @@
 """Database ORM models for Nutrium."""
 
-from datetime import datetime
-from typing import Optional
+# from datetime import datetime
+# from typing import Optional
 from uuid import uuid4
 
 from sqlalchemy import (
@@ -29,15 +29,15 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    name = Column(String(255), nullable=False)
-    email = Column(String(255), unique=True, nullable=False, index=True)
-    password_hash = Column(String(255), nullable=False)
+    # name = Column(String(255), nullable=False)
+    # email = Column(String(255), unique=True, nullable=False, index=True)
+    # password_hash = Column(String(255), nullable=False)
     role = Column(String(50), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
-    last_login = Column(DateTime(timezone=True), nullable=True)
+    # last_login = Column(DateTime(timezone=True), nullable=True)
     is_active = Column(Boolean, default=True, index=True)
     email_verified = Column(Boolean, default=False)
 
@@ -120,7 +120,7 @@ class NutritionistProfile(Base):
     )
 
     # Professional info
-    license_number = Column(String(100), unique=True, nullable=False)
+    # license_number = Column(String(100), unique=True, nullable=False)
     years_of_experience = Column(Integer, nullable=True)
     specializations = Column(JSONB, default=list)
     certifications = Column(JSONB, default=list)
@@ -140,8 +140,8 @@ class NutritionistProfile(Base):
     service_types = Column(JSONB, default=list)
 
     # Additional info
-    bio = Column(Text, nullable=True)
-    profile_picture_url = Column(String(500), nullable=True)
+    # bio = Column(Text, nullable=True)
+    # profile_picture_url = Column(String(500), nullable=True)
     rating = Column(Numeric(3, 2), default=0.00)
     total_reviews = Column(Integer, default=0)
 

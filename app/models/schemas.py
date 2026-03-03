@@ -35,6 +35,12 @@ class ChatRequest(BaseModel):
         default=False, description="Enable streaming response"
     )
 
+class Usage(BaseModel):
+    """Token usage information."""
+
+    prompt_tokens: int = Field(..., description="Number of tokens in the prompt")
+    completion_tokens: int = Field(..., description="Number of tokens in the completion")
+    total_tokens: int = Field(..., description="Total number of tokens used")
 
 class ChatResponse(BaseModel):
     """Chat completion response model."""
@@ -44,7 +50,7 @@ class ChatResponse(BaseModel):
     created: int = Field(..., description="Creation timestamp")
     model: str = Field(..., description="Model used")
     choices: List[Dict[str, Any]] = Field(..., description="Response choices")
-    usage: Optional[Dict[str, int]] = Field(
+    usage: Optional[Usage] = Field(
         default=None, description="Token usage information"
     )
 
@@ -179,7 +185,7 @@ class MatchAnalysisRequest(BaseModel):
         default=5, ge=1, le=20, description="Number of top matches to return"
     )
     ai_model: str = Field(
-        default="openai/gpt-4", description="AI model to use for analysis"
+        default="qwen/qwen3.5-35b-a3b", description="AI model to use for analysis"
     )
 
 
