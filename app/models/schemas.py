@@ -6,6 +6,13 @@ from datetime import datetime
 from uuid import UUID
 
 
+class SimpleAIRequest(BaseModel):
+        prompt: str
+
+class SimpleAIResponse(BaseModel):
+        response: str
+
+
 class ChatMessage(BaseModel):
     """Chat message model."""
 

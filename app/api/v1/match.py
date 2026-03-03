@@ -1,4 +1,6 @@
 """Matching API endpoints for nutritionist-patient compatibility analysis."""
+from app.models.schemas import SimpleAIRequest, SimpleAIResponse
+
 
 from fastapi import APIRouter, HTTPException, Depends
 from typing import List
@@ -89,3 +91,13 @@ async def match_service_health():
         "version": "1.0.0",
         "message": "Matching service is operational",
     }
+
+
+@router.post("/ai/simple", response_model=SimpleAIResponse)
+async def simple_ai_endpoint(
+    data: SimpleAIRequest,
+    ai_service: AIService = Depends(get_ai_service),
+):
+    logger.info(f"Visualizacion de las respuestas: {data}")
+    result = await ai_service.simple_ai(data.prompt)
+    return SimpleAIResponse(response=result)
