@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config.settings import settings
+from app.config.database import init_db, close_db
 from app.core.logging import setup_logging, get_logger
 from app.api.v1 import api_router
 from app.models.schemas import RootResponse
@@ -21,9 +22,17 @@ async def lifespan(app: FastAPI):
     """Application lifespan manager."""
     # Startup
     logger.info(f"Starting {settings.app_name} v{settings.app_version}")
+    try:
+        await init_db()
+        logger.info("Database initialized successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize database: {str(e)}")
+
     yield
+
     # Shutdown
     await ai_service.close()
+    await close_db()
     logger.info("Application shutdown complete")
 
 
@@ -35,7 +44,7 @@ app = FastAPI(
     lifespan=lifespan,
     docs_url="/docs",
     redoc_url="/redoc",
-    openapi_url="/openapi.json"
+    openapi_url="/openapi.json",
 )
 
 # Add CORS middleware
@@ -58,7 +67,7 @@ async def read_root():
         message=f"Welcome to {settings.app_name}",
         version=settings.app_version,
         docs="/docs",
-        health="/api/v1/health"
+        health="/api/v1/health",
     )
 
 
@@ -71,11 +80,11 @@ async def read_item(item_id: int, q: str | None = None):
 
 if __name__ == "__main__":
     import uvicorn
-    
+
     uvicorn.run(
         "main:app",
         host=settings.api_host,
         port=settings.api_port,
         reload=settings.debug,
-        log_level=settings.log_level.lower()
+        log_level=settings.log_level.lower(),
     )

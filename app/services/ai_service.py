@@ -119,5 +119,8 @@ class AIService:
         logger.info("AI service client closed")
 
 
+    async def simple_ai(self,prompt: str) -> str:
+        return f"Respuesta simulada de la IA para: {prompt}"
+
 # Global AI service instance
 ai_service = AIService()
