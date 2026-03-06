@@ -1,6 +1,7 @@
 """Matching service for analyzing patient-nutritionist compatibility using AI."""
 
 import json
+import re
 from typing import List, Dict, Any
 from datetime import datetime
 
@@ -182,14 +183,39 @@ NO incluyas ningún texto adicional, solo el JSON.
 
         raise ValueError("No response from AI service")
 
+    def _sanitize_llm_output(self, raw: str) -> str:
+        """
+        Strip markdown formatting and conversational noise from an LLM response
+        so that json.loads() only ever sees a clean JSON string.
+
+        Strategy (applied in order):
+        1. Remove fenced code blocks:  ```json ... ``` or ``` ... ```
+        2. Extract the first {...} block via regex (handles leading/trailing text).
+        3. Fall back to the stripped raw string so the caller's ValueError still fires.
+        """
+        # Step 1 – remove markdown fences
+        cleaned = re.sub(r"```(?:json)?", "", raw).strip()
+
+        # Step 2 – extract the outermost JSON object
+        match = re.search(r"\{.*\}", cleaned, re.DOTALL)
+        if match:
+            return match.group(0).strip()
+
+        # Step 3 – fallback (will likely raise JSONDecodeError downstream)
+        return cleaned
+
     def _parse_ai_response(
         self, ai_response: str, nutritionists: List[NutritionistProfileData]
     ) -> List[NutritionistMatch]:
         """Parse AI response and create NutritionistMatch objects."""
 
         try:
+            # Sanitize before parsing: strip markdown wrappers and stray text
+            clean_response = self._sanitize_llm_output(ai_response)
+            logger.debug(f"Sanitized AI response: {clean_response[:200]}...")
+
             # Parse JSON from AI response
-            data = json.loads(ai_response)
+            data = json.loads(clean_response)
             matches_data = data.get("matches", [])
 
             # Create a lookup dict for nutritionists
