@@ -111,7 +111,7 @@ ON CONFLICT (name) DO NOTHING;
 
 -- 8. Matches (El núcleo de la IA)
 CREATE TABLE matches (
-    id BIGSERIAL PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     patient_id BIGINT NOT NULL REFERENCES patient_profiles(id) ON DELETE CASCADE,
     nutritionist_id BIGINT NOT NULL REFERENCES nutritionist_profiles(id) ON DELETE CASCADE,
     score DECIMAL(3, 2) CHECK (score >= 0 AND score <= 1.00), -- Ej: 0.95

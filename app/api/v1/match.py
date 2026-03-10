@@ -1,10 +1,11 @@
 """Matching API endpoints for nutritionist-patient compatibility analysis."""
 from app.models.schemas import SimpleAIRequest, SimpleAIResponse
-
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.config.database import get_db
 
 from fastapi import APIRouter, HTTPException, Depends
 from typing import List
-
+from app.models.database_models import AIInteraction
 from app.models.schemas import (
     MatchAnalysisRequest,
     MatchAnalysisResponse,
@@ -97,7 +98,18 @@ async def match_service_health():
 async def simple_ai_endpoint(
     data: SimpleAIRequest,
     ai_service: AIService = Depends(get_ai_service),
+    db:AsyncSession = Depends(get_db),
 ):
     logger.info(f"Visualizacion de las respuestas: {data}")
     result = await ai_service.simple_ai(data.prompt)
+    interaction = AIInteraction(
+        user_id="00000000-0000-0000-0000-000000000000",
+        interaction_type="simple_ai",
+        model_used="test-model",
+        request_payload={"prompt":data.prompt},
+        response_payload={"response":result}
+    )
+    db.add(interaction)
+    await db.commit()
+
     return SimpleAIResponse(response=result)

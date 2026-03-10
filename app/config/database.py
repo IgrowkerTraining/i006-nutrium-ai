@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sess
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.pool import NullPool
 
+
 from app.config.settings import settings
 from app.core.logging import get_logger
 
@@ -53,13 +54,14 @@ async def get_db() -> AsyncSession:
 
 async def init_db():
     """Initialize database connection and create tables if needed."""
+    
     try:
         async with engine.begin() as conn:
             # Import all models here to ensure they are registered
             from app.models import database_models
 
-            # Create tables (only for development, use Alembic in production)
-            # await conn.run_sync(Base.metadata.create_all)
+            # Create tables
+            await conn.run_sync(Base.metadata.create_all)
 
             logger.info("Database connection initialized successfully")
     except Exception as e:
