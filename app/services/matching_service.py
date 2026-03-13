@@ -1,6 +1,7 @@
 """Matching service for analyzing patient-nutritionist compatibility using AI."""
 
 import json
+import re
 from typing import List, Dict, Any
 from datetime import datetime
 
@@ -177,10 +178,59 @@ NO incluyas ningún texto adicional, solo el JSON.
         response = await self.ai_service.chat_completion(chat_request)
 
         # Extract content from response
-        if response.choices and len(response.choices) > 0:
-            return response.choices[0]["message"]["content"]
+        if not response.choices:
+            logger.error(
+                "La respuesta cruda de la IA es None o está vacía. "
+                "Verificando API Keys y payload... "
+                f"model={model}, choices={response.choices!r}"
+            )
+            raise ValueError("AI service returned no choices in response")
 
-        raise ValueError("No response from AI service")
+        content = response.choices[0].get("message", {}).get("content")
+        if not content:
+            logger.error(
+                "La respuesta cruda de la IA es None o está vacía. "
+                "Verificando API Keys y payload... "
+                f"model={model}, raw_choice={response.choices[0]!r}"
+            )
+            raise ValueError(
+                "AI service returned a choice with None or empty content. "
+                "Check API key validity, quota, and model availability."
+            )
+
+        return content
+
+    def _sanitize_llm_output(self, raw: str) -> str:
+        """
+        Strip markdown formatting and conversational noise from an LLM response
+        so that json.loads() only ever sees a clean JSON string.
+
+        Strategy (applied in order):
+        0. Guard against None / empty input.
+        1. Remove fenced code blocks:  ```json ... ``` or ``` ... ```
+        2. Extract the first {...} block via regex (handles leading/trailing text).
+        3. Fall back to the stripped raw string so the caller's ValueError still fires.
+        """
+        # Step 0 – guard against None / empty
+        if not raw:
+            logger.error(
+                "La respuesta cruda de la IA es None o está vacía. "
+                "Verificando API Keys y payload..."
+            )
+            raise ValueError(
+                "Cannot sanitize AI output: raw response is None or empty."
+            )
+
+        # Step 1 – remove markdown fences
+        cleaned = re.sub(r"```(?:json)?", "", raw).strip()
+
+        # Step 2 – extract the outermost JSON object
+        match = re.search(r"\{.*\}", cleaned, re.DOTALL)
+        if match:
+            return match.group(0).strip()
+
+        # Step 3 – fallback (will likely raise JSONDecodeError downstream)
+        return cleaned
 
     def _parse_ai_response(
         self, ai_response: str, nutritionists: List[NutritionistProfileData]
@@ -188,8 +238,20 @@ NO incluyas ningún texto adicional, solo el JSON.
         """Parse AI response and create NutritionistMatch objects."""
 
         try:
+            # Guard: ensure we received something before trying to parse
+            if not ai_response:
+                logger.error(
+                    "La respuesta cruda de la IA es None o está vacía. "
+                    "Verificando API Keys y payload..."
+                )
+                raise ValueError("AI response is None or empty, cannot parse matches.")
+
+            # Sanitize before parsing: strip markdown wrappers and stray text
+            clean_response = self._sanitize_llm_output(ai_response)
+            logger.debug(f"Sanitized AI response: {clean_response[:200]}...")
+
             # Parse JSON from AI response
-            data = json.loads(ai_response)
+            data = json.loads(clean_response)
             matches_data = data.get("matches", [])
 
             # Create a lookup dict for nutritionists
@@ -238,7 +300,10 @@ NO incluyas ningún texto adicional, solo el JSON.
 
         except json.JSONDecodeError as e:
             logger.error(f"Failed to parse AI response as JSON: {str(e)}")
-            logger.error(f"AI Response: {ai_response}")
+            logger.error(
+                f"Raw AI text that failed JSON parsing: "
+                f"{ai_response!r:.500}"
+            )
             raise ValueError("AI response is not valid JSON")
         except Exception as e:
             logger.error(f"Error parsing AI response: {str(e)}")
