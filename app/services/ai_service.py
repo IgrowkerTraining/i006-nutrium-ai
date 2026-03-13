@@ -63,14 +63,31 @@ class AIService:
             return chat_response
             
         except httpx.HTTPStatusError as e:
-            error_msg = f"OpenRouter API error: {e.response.status_code} - {e.response.text}"
+            status = e.response.status_code
+            body = e.response.text
+            if status == 401:
+                error_msg = (
+                    f"OpenRouter API authentication failed (401 Unauthorized). "
+                    f"API key may be missing, invalid, or revoked. "
+                    f"Configured key: {mask_api_key(settings.openrouter_api_key)} | "
+                    f"Response body: {body}"
+                )
+            elif status == 429:
+                error_msg = (
+                    f"OpenRouter API rate-limit / quota exceeded (429). "
+                    f"Response body: {body}"
+                )
+            else:
+                error_msg = (
+                    f"OpenRouter API error: {status} - {body}"
+                )
             logger.error(error_msg)
             raise Exception(error_msg)
         except Exception as e:
             error_msg = f"Error calling OpenRouter API: {str(e)}"
             logger.error(error_msg)
             raise Exception(error_msg)
-    
+
     async def list_models(self) -> List[ModelInfo]:
         """List available models from OpenRouter."""
         try:
