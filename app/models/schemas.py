@@ -26,7 +26,7 @@ class ChatRequest(BaseModel):
     model: str = Field(default="openai/gpt-3.5-turbo", description="AI model to use")
     messages: List[ChatMessage] = Field(..., description="List of chat messages")
     max_tokens: Optional[int] = Field(
-        default=1000, ge=1, le=4096, description="Maximum tokens to generate"
+        default=4000, ge=1, le=4096, description="Maximum tokens to generate"
     )
     temperature: Optional[float] = Field(
         default=0.7, ge=0.0, le=2.0, description="Sampling temperature"
