@@ -42,6 +42,7 @@ class AIService:
             "max_tokens": request.max_tokens,
             "temperature": request.temperature,
             "stream": request.stream,
+            "response_format": {"type": "json_object"},
         }
         
         try:

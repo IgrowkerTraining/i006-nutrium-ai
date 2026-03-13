@@ -98,9 +98,12 @@ PERFIL DEL PACIENTE:
 - Presupuesto: {patient.budget_range if patient.budget_range else 'No especificado'}
 """
 
+        # Limit to max 5 nutritionists to avoid token overflow with CoT models
+        nutritionists_to_evaluate = nutritionists[:5]
+
         # Create nutritionists summary
         nutritionists_summary = "NUTRICIONISTAS DISPONIBLES:\n\n"
-        for idx, nut in enumerate(nutritionists, 1):
+        for idx, nut in enumerate(nutritionists_to_evaluate, 1):
             nutritionists_summary += f"""
 {idx}. {nut.name} (ID: {nut.id})
    - Especializaciones: {', '.join(nut.specializations)}
@@ -154,6 +157,8 @@ Responde ÚNICAMENTE con un JSON válido en el siguiente formato:
 }}
 
 NO incluyas ningún texto adicional, solo el JSON.
+
+CRITICAL INSTRUCTION: DO NOT OUTPUT ANY INTERNAL THOUGHTS, CHAIN OF THOUGHT, OR REASONING STEPS. YOUR VERY FIRST CHARACTER MUST BE '{' AND YOUR LAST CHARACTER MUST BE '}'. NO MARKDOWN. NO COMMENTS. JUST RAW VALID JSON.
 """
 
         return prompt
